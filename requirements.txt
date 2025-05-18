@@ -1,4 +1,4 @@
-# Python runtime is specified in runtime.txt as python-3.11.9
+# Python version is specified in .python-version as 3.11
 
 fastapi
 uvicorn[standard]
@@ -8,13 +8,13 @@ Pillow
 pandas
 pytesseract
 timm
-accelerate>=0.20.3 # Or your specific development version
+accelerate>=0.20.3 # Or your specific development version if different
 huggingface_hub
-# matplotlib # Optional: remove if not used by your deployed FastAPI app
+# matplotlib # Optional: Remove if not used by your deployed FastAPI app to save space
 
-# --- Explicit PyTorch CPU-only Configuration for Python 3.11 ---
-# These versions are known to have +cpu wheels compatible with Python 3.11.x
-# The --find-links tells pip to look for these specific files at the given URL.
-torch==2.2.2+cpu --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
-torchvision==0.17.2+cpu --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
-# torchaudio==2.2.2+cpu --find-links https://download.pytorch.org/whl/cpu/torch_stable.html # Add if you specifically use torchaudio
+# --- PyTorch CPU-only Configuration ---
+# Let pip find the latest compatible CPU-only versions for Python 3.11.x
+# from the official PyTorch CPU index.
+torch --index-url https://download.pytorch.org/whl/cpu
+torchvision --index-url https://download.pytorch.org/whl/cpu
+# torchaudio --index-url https://download.pytorch.org/whl/cpu # Add if you specifically use torchaudio
