@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-multipart
+transformers
+torch
+Pillow
+pandas
+pytesseract
+timm
+accelerate>=0.20.3
+matplotlib
+huggingface_hub

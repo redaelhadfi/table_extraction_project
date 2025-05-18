@@ -1,0 +1,171 @@
+/* static/style.css */
+:root {
+    /* Example: Customizing Pico's default spacing or colors if needed */
+    /* --spacing: 1.25rem; */
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main.container {
+    flex-grow: 1;
+    padding-top: var(--spacing);
+    padding-bottom: calc(var(--spacing) * 2); /* More space before footer */
+}
+
+/* Improve nav a bit */
+nav.container-fluid {
+    padding-left: var(--block-spacing-horizontal);
+    padding-right: var(--block-spacing-horizontal);
+    border-bottom: 1px solid var(--card-border-color); /* Or use var(--muted-border-color) */
+}
+nav strong a.contrast:hover, nav strong a.contrast:focus {
+    background-color: transparent; /* Pico adds bg on hover/focus, remove for brand link */
+    color: var(--contrast-hover);
+}
+
+
+article header {
+    margin-bottom: var(--spacing);
+}
+
+article header h2 {
+    margin-bottom: calc(var(--spacing) / 3);
+}
+article header p {
+    color: var(--muted-color);
+    font-size: var(--font-size); /* Use default font size for paragraph */
+    margin-top: 0;
+}
+
+
+/* Form enhancements */
+#uploadForm label {
+    font-weight: bold; /* Make label for file input bold */
+}
+#fileInput {
+    margin-top: calc(var(--spacing) / 3); /* Add some space above the file input */
+    border: 1px dashed var(--muted-border-color); /* Dashed border */
+    padding: var(--spacing);
+    background-color: var(--card-background-color); /* Match card bg */
+}
+#fileInput:hover {
+    border-color: var(--primary);
+}
+
+
+.image-preview-container {
+    margin-top: var(--spacing);
+    margin-bottom: var(--spacing);
+    text-align: center; /* Center the preview image */
+}
+
+.image-preview-container p {
+    margin-bottom: calc(var(--spacing) / 2);
+    font-size: var(--font-size-sm); /* smaller font for "Selected Image Preview:" */
+    color: var(--muted-color);
+}
+
+/* Submit button with spinner */
+#submitButton {
+    display: inline-flex; /* Aligns text and spinner */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* Space between text and spinner */
+    min-width: 180px; /* Give button some consistent width */
+}
+
+.spinner {
+    width: 1.2em; /* Size relative to button font size */
+    height: 1.2em;
+    animation: rotate 2s linear infinite;
+}
+
+.spinner .path {
+    stroke: currentColor; /* Use button's text color for spinner */
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}
+
+
+/* Result Area Styling */
+#resultArea article header hgroup p { /* Status Message */
+    font-style: italic;
+    color: var(--secondary); /* A different color for status */
+}
+
+#tableContainer table {
+    margin-top: var(--spacing);
+}
+
+.error-message {
+    color: var(-- Muted Red or default Pico danger color); /* Pico might have a class for this */
+    background-color: hsla(var(--pico-color-red-hsl), 0.1); /* Slightly transparent red bg */
+    border: 1px solid var(--pico-color-red); /* Red border */
+    padding: var(--spacing);
+    border-radius: var(--border-radius);
+    margin-top: var(--spacing);
+}
+
+.error-message p {
+    margin: 0; /* Remove default paragraph margin inside the error box */
+    color: var(--pico-color-red); /* Ensure text is red */
+}
+
+
+#noResultsMessage .icon {
+    color: var(--muted-color);
+    margin-bottom: 0.5rem;
+}
+#noResultsMessage p {
+    color: var(--muted-color);
+    font-size: 1.1rem;
+}
+
+
+footer {
+    padding-top: var(--spacing);
+    padding-bottom: var(--spacing);
+    border-top: 1px solid var(--card-border-color);
+    margin-top: calc(var(--spacing) * 2) ;
+    text-align: center;
+}
+
+/* Small screen adjustments */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    nav details[role='list'] {
+        width: 100%;
+        text-align: left;
+    }
+    nav details[role='list'] ul[role='listbox'] {
+        width: 100%;
+    }
+}

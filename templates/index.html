@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" class="light"> <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Table Extractor</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <style type="text/tailwindcss">
+        /* Minimal custom styles, primarily for animations or very specific tweaks */
+        @layer utilities {
+          .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+          }
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .img-preview-pop {
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+          }
+          @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            80% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+        }
+
+        .btn-spinner {
+            width: 1.125rem; /* 18px */
+            height: 1.125rem; /* 18px */
+            border: 2px solid currentColor;
+            border-bottom-color: transparent !important;
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom file input styling */
+        .custom-file-input-container {
+            position: relative;
+            overflow: hidden;
+            display: inline-block; /* Or block if you want it full width */
+            width: 100%;
+        }
+        .custom-file-input-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 2.5rem 1.5rem; /* py-10 px-6 */
+            border-width: 2px;
+            border-style: dashed;
+            border-radius: 0.75rem; /* rounded-xl */
+            cursor: pointer;
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+        .custom-file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        // Force light theme - remove all dark theme logic
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        if (localStorage.getItem('theme')) {
+            localStorage.removeItem('theme'); // Clean up old theme preference
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-700 font-sans antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-start h-20 space-x-3">
+                <div class="p-2.5 rounded-lg bg-sky-100">
+                    <svg class="h-7 w-7 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-semibold text-slate-800 tracking-tight">
+                    Table Data Extractor
+                </h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 mt-8 mb-16">
+        <section id="uploadSection" class="bg-white shadow-xl rounded-xl p-6 sm:p-10 md:p-12 fade-in-up">
+            
+            <header class="mb-8 text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-3">
+                    Extract Tables from Images with Ease
+                </h2>
+                <p class="text-lg text-slate-500 max-w-2xl mx-auto">
+                    Upload your image file. Our AI will detect and convert tables into structured data quickly and accurately.
+                </p>
+            </header>
+
+            <form id="uploadForm" class="space-y-8">
+                <div class="custom-file-input-container">
+                    <label for="fileInput" id="dropZoneLabel" class="custom-file-input-label border-slate-300 hover:border-sky-500 bg-slate-50 text-slate-500 hover:text-sky-600">
+                        <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.336 11.029H6.75z" />
+                        </svg>
+                        <span class="font-semibold text-sky-600">Click to upload</span>
+                        <span class="mt-1">or drag and drop</span>
+                        <span class="text-xs mt-2">PNG, JPG, GIF (MAX. 10MB)</span>
+                        <input id="fileInput" name="file" type="file" class="custom-file-input" accept="image/*">
+                    </label>
+                    <p id="fileName" class="text-sm text-sky-600 font-medium text-center mt-3"></p>
+                </div>
+
+                <div id="imagePreviewContainer" class="hidden mt-6 text-center img-preview-pop">
+                    <p class="text-sm font-medium text-slate-500 mb-3">Image Preview:</p>
+                    <img id="imagePreview" src="#" alt="Image Preview" class="max-w-lg h-auto mx-auto rounded-lg shadow-md border border-slate-200" />
+                </div>
+
+                <button type="submit" id="submitButton" 
+                        class="w-full flex items-center justify-center px-8 py-3.5 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white 
+                               bg-sky-600 hover:bg-sky-700 
+                               focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 
+                               disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform active:scale-[0.98]">
+                    <span class="button-text">Extract Table Data</span>
+                    <div class="btn-spinner ml-2.5 hidden" role="status"></div>
+                </button>
+            </form>
+        </section>
+
+        <section id="resultArea" class="mt-12 hidden fade-in-up">
+            <div class="bg-white shadow-xl rounded-xl">
+                <header class="px-6 py-5 sm:px-8 md:px-10 border-b border-slate-200">
+                    <h3 class="text-xl font-semibold text-slate-800">Extraction Results</h3>
+                </header>
+                
+                <div class="p-6 sm:p-8 md:p-10 space-y-6">
+                    <div id="statusMessage" class="text-base text-center font-medium"></div>
+                    
+                    <div id="errorMessageContainer" class="hidden p-4 rounded-lg bg-red-50 border border-red-200">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293A1 1 0 0010.293 6.293L9.293 7.293 8.707 7.293zM10 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-red-700">Extraction Failed</h4>
+                                <div id="errorMessageText" class="mt-0.5 text-sm text-red-600"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="noResultsMessage" class="hidden text-center py-10">
+                         <svg class="mx-auto h-16 w-16 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" > <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5H9.75" /> </svg>
+                        <p class="mt-4 text-lg font-semibold text-slate-700">No Table Detected</p>
+                        <p class="mt-1.5 text-base text-slate-500" id="noResultsText">We couldn't find any tabular data in the uploaded image.</p>
+                    </div>
+
+                    <div id="tableContainer" class="overflow-x-auto rounded-lg border border-slate-200">
+                        </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-8 text-center mt-12 border-t border-slate-200">
+        <p class="text-sm text-slate-500">&copy; <span id="currentYear"></span> Table Extractor. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const dropZoneLabel = document.getElementById('dropZoneLabel');
+        const fileNameDisplay = document.getElementById('fileName');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const submitButton = document.getElementById('submitButton');
+        const buttonText = submitButton.querySelector('.button-text');
+        const spinner = submitButton.querySelector('.btn-spinner'); // Corrected class
+
+        const resultArea = document.getElementById('resultArea');
+        const statusMessage = document.getElementById('statusMessage');
+        const tableContainer = document.getElementById('tableContainer');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const noResultsText = document.getElementById('noResultsText');
+        const errorMessageContainer = document.getElementById('errorMessageContainer');
+        const errorMessageText = document.getElementById('errorMessageText');
+        
+        // Store original drop zone label content
+        const originalDropZoneContent = {
+            icon: dropZoneLabel.querySelector('svg').outerHTML,
+            uploadText: dropZoneLabel.querySelector('.font-semibold').textContent,
+            dragText: dropZoneLabel.querySelector('.font-semibold + span').textContent,
+            infoText: dropZoneLabel.querySelector('.text-xs').textContent,
+        };
+
+        function resetDropZoneLabel() {
+            dropZoneLabel.innerHTML = `
+                ${originalDropZoneContent.icon}
+                <span class="font-semibold text-sky-600">${originalDropZoneContent.uploadText}</span>
+                <span class="mt-1">${originalDropZoneContent.dragText}</span>
+                <span class="text-xs mt-2">${originalDropZoneContent.infoText}</span>
+            `;
+            fileNameDisplay.textContent = ''; // Clear separate file name display
+        }
+        
+        function updateDropZoneForFile(file) {
+             dropZoneLabel.innerHTML = `
+                <svg class="mx-auto h-10 w-10 text-green-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span class="font-semibold text-slate-700">${escapeHtml(file.name)}</span>
+                <span class="text-xs text-slate-500 mt-1">${(file.size / 1024).toFixed(1)} KB</span>
+                <span class="text-xs text-sky-600 mt-2 cursor-pointer hover:underline" id="changeFileLink">Change file</span>
+            `;
+            // Add event listener to "Change file" link
+            document.getElementById('changeFileLink').addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent label from triggering input
+                e.stopPropagation(); // Stop propagation to label
+                fileInput.value = ''; // Clear the file input
+                resetDropZoneLabel();
+                imagePreviewContainer.classList.add('hidden');
+                // Manually trigger click on the hidden file input to open file dialog
+                fileInput.click(); 
+            });
+        }
+
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZoneLabel.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZoneLabel.addEventListener(eventName, () => dropZoneLabel.classList.add('border-sky-500', 'bg-sky-50'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZoneLabel.addEventListener(eventName, () => dropZoneLabel.classList.remove('border-sky-500', 'bg-sky-50'), false);
+        });
+
+        dropZoneLabel.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                processFile(files[0]);
+            } else { // No file selected (e.g., user cancels file dialog)
+                 if (!imagePreview.src || imagePreview.src === '#' || imagePreview.src.startsWith('data:image/') === false) { // Check if a valid image was already previewed
+                    resetDropZoneLabel(); // Only reset if no valid image is being previewed
+                    imagePreviewContainer.classList.add('hidden');
+                 }
+            }
+        }
+        function handleDrop(event) {
+            const dt = event.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                fileInput.files = files;
+                processFile(files[0]);
+            }
+        }
+        
+        function processFile(file) {
+            if (file) {
+                updateDropZoneForFile(file); // Update drop zone text
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+                errorMessageContainer.classList.add('hidden');
+                errorMessageText.textContent = '';
+            } else { // This case might not be hit if handled by handleFileSelect's else
+                resetDropZoneLabel();
+                imagePreviewContainer.classList.add('hidden');
+            }
+        }
+
+
+        uploadForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Crucial Fix: Ensure fileInput.files exists and has a file
+            if (!fileInput.files || fileInput.files.length === 0) {
+                // Only show result area if it's for an error message here
+                resultArea.classList.remove('hidden', 'fade-in-up'); // Remove animation class if re-showing for error
+                statusMessage.textContent = '';
+                tableContainer.innerHTML = '';
+                noResultsMessage.classList.add('hidden');
+                
+                errorMessageText.textContent = "Please select an image file to upload.";
+                errorMessageContainer.classList.remove('hidden');
+                
+                // Scroll to the error message if it's out of view
+                errorMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return; // Stop form submission
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            // Start loading state
+            submitButton.disabled = true;
+            buttonText.classList.add('opacity-0'); // Hide text by making it transparent
+            spinner.classList.remove('hidden');   // Show spinner
+
+            resultArea.classList.remove('hidden');
+            resultArea.classList.add('fade-in-up'); // Add animation for result card appearance
+            statusMessage.textContent = 'Analyzing image... Please wait.';
+            statusMessage.className = 'text-base text-center font-medium text-sky-600 animate-pulse';
+            tableContainer.innerHTML = '';
+            noResultsMessage.classList.add('hidden');
+            errorMessageContainer.classList.add('hidden');
+
+            try {
+                const response = await fetch('/extract_table/', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || `Server error (Status: ${response.status})`);
+                }
+                
+                statusMessage.className = 'text-base text-center font-medium'; // Reset class
+
+                if (result.message && (!result.headers || result.headers.length === 0) && (!result.rows || result.rows.length === 0)) {
+                    noResultsText.textContent = result.message;
+                    noResultsMessage.classList.remove('hidden');
+                    tableContainer.innerHTML = '';
+                    statusMessage.textContent = '';
+                } else if (result.headers && result.rows) {
+                    if (result.headers.length > 0 || result.rows.length > 0) {
+                        statusMessage.textContent = 'Table data extracted successfully!';
+                        statusMessage.className = 'text-base text-center font-medium text-green-600';
+                        renderTable(result.headers, result.rows);
+                        noResultsMessage.classList.add('hidden');
+                    } else {
+                         noResultsText.textContent = "No structured table data was found in the image.";
+                         noResultsMessage.classList.remove('hidden');
+                         tableContainer.innerHTML = '';
+                         statusMessage.textContent = '';
+                    }
+                } else {
+                     noResultsText.textContent = "The server returned an unexpected response.";
+                     noResultsMessage.classList.remove('hidden');
+                     tableContainer.innerHTML = '';
+                     statusMessage.textContent = '';
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                statusMessage.textContent = '';
+                errorMessageText.textContent = `${error.message}`;
+                errorMessageContainer.classList.remove('hidden');
+                tableContainer.innerHTML = '';
+                noResultsMessage.classList.add('hidden');
+            } finally {
+                // Crucial Fix: Correctly reset button state
+                submitButton.disabled = false;
+                buttonText.classList.remove('opacity-0'); // Make text visible again
+                spinner.classList.add('hidden');      // Hide spinner
+            }
+        });
+        function renderTable(headers, rows) {
+            if (!headers || (headers.length === 0 && (!rows || rows.length === 0))) {
+                tableContainer.innerHTML = ''; // Clear any previous table
+                noResultsText.textContent = "No data available to display in table format.";
+                noResultsMessage.classList.remove('hidden');
+                return;
+            }
+            noResultsMessage.classList.add('hidden'); // Hide no results message if we have data
+
+            // The div wrapping the table should NOT have overflow-hidden.
+            // It can have shadows, borders, and rounding.
+            // The parent 'tableContainer' already has 'overflow-x-auto'.
+            let tableHTML = `
+                <div class="shadow-md border border-slate-200 sm:rounded-lg"> 
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-100">
+                            <tr>`;
+            headers.forEach(header => {
+                tableHTML += `<th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-slate-700 sticky top-0 bg-slate-100 z-10">${escapeHtml(header)}</th>`; // Added sticky header
+            });
+            tableHTML += `      </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">`;
+
+            if (rows && rows.length > 0) {
+                rows.forEach((row, rowIndex) => {
+                    tableHTML += `<tr class="hover:bg-sky-50/50 transition-colors duration-100">`;
+                    headers.forEach(headerKey => { 
+                        tableHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${escapeHtml(row[headerKey] !== null && row[headerKey] !== undefined ? row[headerKey] : '')}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+            } else {
+                 tableHTML += `<tr><td colspan="${headers.length > 0 ? headers.length : 1}" class="px-6 py-10 text-center text-sm text-slate-500">No data rows found.</td></tr>`;
+            }
+
+            tableHTML += `      </tbody>
+                        </table>
+                    </div>`;
+            tableContainer.innerHTML = tableHTML;
+        }
+        function escapeHtml(unsafe) {
+            if (unsafe === null || typeof unsafe === 'undefined') return '';
+            return String(unsafe)
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
