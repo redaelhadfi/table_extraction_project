@@ -6,17 +6,13 @@ Pillow
 pandas
 pytesseract
 timm
-accelerate>=0.20.3 # Or pin to the version you used in development if different and critical
+accelerate>=0.20.3 # Or pin to the version you used in development if different
 huggingface_hub
 # matplotlib # Optional: remove if not used by your deployed FastAPI app to save space
 
 # --- PyTorch CPU-only Configuration ---
-# Forcing specific CPU versions.
-# Ensure your Python version in runtime.txt (e.g., python-3.10.x, python-3.11.x) is compatible.
-# These versions are examples; check PyTorch website for latest stable CPU versions if needed.
-torch==2.3.1+cpu --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
-torchvision==0.18.1+cpu --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
-# torchaudio==2.3.1+cpu --find-links https://download.pytorch.org/whl/cpu/torch_stable.html # Add if you use torchaudio
-
-# Other direct dependencies (if any, ensure they don't re-specify torch without CPU constraint)
-# For example, if you had 'some-package-that-needs-torch', pip should use the torch already specified above.
+# Instruct pip to find CPU-specific wheels from the official PyTorch index.
+# Pip will select the appropriate version for your Python runtime on Heroku.
+torch --index-url https://download.pytorch.org/whl/cpu
+torchvision --index-url https://download.pytorch.org/whl/cpu
+# torchaudio --index-url https://download.pytorch.org/whl/cpu # Add if you explicitly use torchaudio
