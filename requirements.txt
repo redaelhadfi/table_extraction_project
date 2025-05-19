@@ -1,4 +1,5 @@
 # Python version is specified in .python-version as 3.11
+gunicorn  # <-- MAKE SURE THIS IS PRESENT
 
 fastapi
 uvicorn[standard]
