@@ -31,4 +31,4 @@ EXPOSE 8000
 # Define the command to run your application
 # Using Gunicorn with Uvicorn workers is recommended for production
 # Ensure app.main:app matches your FastAPI application instance
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "app.main:app"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "--timeout", "600", "app.main:app"]
